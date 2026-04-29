@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phil Ed Tech School Management System</title>
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root{
+      --primary:#0f172a;
+      --secondary:#2563eb;
+      --light:#f1f5f9;
+      --green:#16a34a;
+      --red:#dc2626;
+    }
+    body{margin:0;font-family:Segoe UI,sans-serif;background:var(--light);}
+    .login-screen{position:fixed;inset:0;background:#0f172a;display:flex;justify-content:center;align-items:center;z-index:2000;}
+    .login-box{background:#fff;padding:30px;border-radius:10px;width:300px;text-align:center;}
+    nav{background:#1e293b;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:12px 20px;}
+    .nav-brand{display:flex;align-items:center;gap:10px;}
+    .nav-logo{height:30px;width:30px;object-fit:contain;border-radius:4px;background:#fff;display:none;}
+    nav button{background:none;border:none;color:#fff;margin:0 6px;font-size:15px;cursor:pointer;}
+    nav button:hover{text-decoration:underline;}
+    .logout-btn{background:#dc2626;padding:6px 10px;border-radius:6px;}
+    .section{display:none;}
+    .active-section{display:block;}
+    .container{padding:15px;max-width:1200px;margin:auto;}
+    .card{background:#ffffff;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.1);margin-bottom:20px;}
+    input,select,textarea{width:100%;padding:8px;border-radius:6px;border:1px solid #ccc;margin-bottom:10px;box-sizing:border-box;}
+    button{background:var(--secondary);color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;margin:2px;}
+    button:hover{background:#1d4ed8;}
+    button[style*="--red"]{background:var(--red);}
+    button[style*="--red"]:hover{background:#b91c1c;}
+    table{width:100%;border-collapse:collapse;margin-top:10px;}
+    th,td{text-align:center;padding:8px;border:1px solid #ccc;}
+    th{background:var(--secondary);color:#fff;}
+    tr:nth-child(even){background:#f4f4f4;}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;overflow-y:auto;}
+    .modal-content{background:#fff;width:95%;max-width:1000px;margin:20px auto;padding:20px;border-radius:10px;position:relative;}
+    .close{position:absolute;top:10px;right:15px;font-size:28px;cursor:pointer;}
+    .form-group{margin-bottom:15px;}
+    .form-group label{display:block;font-weight:bold;margin-bottom:5px;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
+    .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;}
+    .logo-preview{max-width:150px;max-height:150px;margin-top:10px;border-radius:6px;border:1px solid #ddd;}
+    .stamp-preview{max-width:120px;max-height:120px;margin-top:10px;border-radius:6px;border:1px solid #ddd;}
+  
+    nav button i { margin-right: 8px; }
+    .card h3 i { margin-right: 10px; color: var(--secondary); }
+    button i { margin-right: 5px; }
+    .nav-brand i { font-size: 24px; margin-right: 10px; color: #fff; }
+      
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .stat-card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; border-top: 4px solid var(--secondary); }
+    .stat-card h4 { margin: 0; color: #64748b; font-size: 14px; }
+    .stat-card .value { font-size: 24px; font-weight: bold; margin: 10px 0; color: var(--primary); }
+    .chart-container { position: relative; height: 300px; width: 100%; }
+    .attendance-table th, .attendance-table td { padding: 5px; font-size: 12px; }
+    .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+    .badge-paid { background: #dcfce7; color: #166534; }
+    .badge-unpaid { background: #fee2e2; color: #991b1b; }
+    .badge-partial { background: #fef9c3; color: #854d0e; }
+    .role-badge { background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px; }
+
+    /* LICENSE / SUBSCRIPTION STYLES */
+    .license-screen { position:fixed; inset:0; background:rgba(15,23,42,0.97); display:flex; justify-content:center; align-items:center; z-index:3000; }
+    .license-box { background:#fff; padding:40px 35px; border-radius:14px; width:380px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.4); }
+    .license-box h2 { color:#0f172a; margin-bottom:6px; }
+    .license-box p { color:#64748b; font-size:13px; margin-bottom:20px; }
+    .plan-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+    .plan-card { border:2px solid #e2e8f0; border-radius:10px; padding:16px; cursor:pointer; transition:all .2s; }
+    .plan-card:hover, .plan-card.selected { border-color:#2563eb; background:#eff6ff; }
+    .plan-card h4 { margin:0 0 6px; color:#0f172a; font-size:15px; }
+    .plan-card .price { font-size:18px; font-weight:bold; color:#2563eb; }
+    .plan-card ul { list-style:none; padding:0; margin:8px 0 0; font-size:11px; color:#475569; text-align:left; }
+    .plan-card ul li::before { content:"✓ "; color:#16a34a; }
+    .demo-banner { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; padding:8px 16px; text-align:center; font-size:13px; font-weight:bold; position:sticky; top:0; z-index:999; }
+    .demo-banner span { font-size:11px; font-weight:normal; margin-left:8px; opacity:.85; }
+    .demo-lock { display:inline-block; background:#dc2626; color:#fff; font-size:11px; padding:2px 8px; border-radius:10px; margin-left:6px; }
+    .license-badge { background:#16a34a; color:#fff; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:bold; margin-left:8px; }
+    .license-badge.demo { background:#f59e0b; }
+    .blocked-section { position:relative; pointer-events:none; filter:blur(2px) grayscale(0.5); opacity:0.5; }
+    .block-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:100; pointer-events:all; }
+    .block-overlay-inner { background:#fff; padding:30px; border-radius:12px; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,.2); }
+    .section-wrapper { position:relative; }
+      </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- LICENSE ACTIVATION SCREEN -->
+  <div id="licenseScreen" class="license-screen">
+    <div class="license-box">
+      <div style="font-size:48px;margin-bottom:10px;">🏫</div>
+      <h2>Phil Ed Tech SMS</h2>
+      <p>School Management System — Choose your access mode or enter a license key to unlock full features.</p>
+      <div style="margin-bottom:16px;">
+        <input type="text" id="licenseKeyInput" placeholder="Enter License Key (e.g. PHIL-XXXX-XXXX)" style="text-align:center;font-size:14px;">
+        <button onclick="activateLicense()" style="width:100%;background:#16a34a;"><i class="fas fa-unlock"></i> Activate Full License</button>
+      </div>
+      <div style="text-align:center;margin:12px 0;color:#94a3b8;font-size:12px;">── or continue with demo ──</div>
+      <button onclick="startDemo()" style="width:100%;background:#f59e0b;"><i class="fas fa-eye"></i> Try Demo (Limited Features)</button>
+      <p style="font-size:11px;color:#94a3b8;margin-top:16px;">Contact Phil Ed Tech to purchase a license key.<br>Demo allows up to 5 students & basic features only.</p>
+    </div>
+  </div>
+
+  <!-- DEMO BANNER (shown in demo mode) -->
+  <div id="demoBanner" class="demo-banner" style="display:none;">
+    ⚠️ DEMO MODE — Limited to 5 students <span>| Upgrade to unlock all features</span>
+    <button onclick="showLicenseScreen()" style="margin-left:10px;background:#fff;color:#d97706;font-size:11px;padding:3px 10px;border-radius:10px;">Activate License</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginScreen" class="login-screen" style="display:none;">
+    <div class="login-box">
+      <h2><i class="fas fa-school" style="color:#2563eb;margin-right:8px;"></i>School Login</h2>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button id="tabAdmin" onclick="switchLoginTab('admin')" style="flex:1;background:#2563eb;">Admin</button>
+        <button id="tabTeacher" onclick="switchLoginTab('teacher')" style="flex:1;background:#94a3b8;">Class Teacher</button>
+      </div>
+      <!-- Admin Tab -->
+      <div id="loginAdminTab">
+        <input type="password" id="adminPassword" placeholder="Enter Admin Password">
+        <button style="width:100%" onclick="adminLogin()"><i class="fas fa-sign-in-alt"></i> Login as Admin</button>
+      </div>
+      <!-- Teacher Tab -->
+      <div id="loginTeacherTab" style="display:none;">
+        <select id="teacherClassSelect" style="margin-bottom:10px;"></select>
+        <input type="password" id="teacherPassword" placeholder="Enter Teacher Password">
+        <p style="font-size:11px;color:#64748b;margin:4px 0 10px;">Password is your class name e.g. <b>JSS1</b></p>
+        <button style="width:100%" onclick="teacherLogin()"><i class="fas fa-chalkboard-teacher"></i> Login as Teacher</button>
+      </div>
+    </div>
+  </div>
+  <!-- END LOGIN -->
+  <nav>
+    <div class="nav-brand">
+      <img id="navLogo" class="nav-logo" alt="Logo">
+      <strong id="navSchoolName">Phil Ed Tech School Admin</strong><span id="userRoleBadge" class="role-badge">Admin</span><span id="licenseBadge" class="license-badge demo">DEMO</span>
+    </div>
+    <!-- Admin Nav -->
+    <div id="adminNav">
+      <button onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt"></i>Dashboard</button>
+      <button onclick="showSection('scoreEntry')"><i class="fas fa-pen-nib"></i>Score Entry</button>
+      <button onclick="showSection('students')"><i class="fas fa-user-graduate"></i>Students</button>
+      <button onclick="showSection('excel')"><i class="fas fa-file-excel"></i>Excel</button>
+      <button onclick="showSection('downloadData')"><i class="fas fa-download"></i>Download Data</button>
+      <button onclick="showSection('attendance')"><i class="fas fa-calendar-check"></i>Attendance</button>
+      <button onclick="showSection('bursary')"><i class="fas fa-money-bill-wave"></i>Bursary</button>
+      <button onclick="showSection('reports')"><i class="fas fa-file-invoice"></i>Reports</button>
+      <button onclick="showSection('settings')"><i class="fas fa-cog"></i>Settings</button>
+      <button onclick="showLicenseScreen()" style="background:#16a34a;"><i class="fas fa-key"></i>License</button>
+      <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Logout</button>
+    </div>
+    <!-- Teacher Nav -->
+    <div id="teacherNav" style="display:none;">
+      <button onclick="showSection('teacherAttendance')"><i class="fas fa-calendar-check"></i>Mark Attendance</button>
+      <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Logout</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- DASHBOARD -->
+
+    <!-- ATTENDANCE -->
+    <div id="attendance" class="section">
+      <div class="card">
+        <h3><i class="fas fa-calendar-check"></i>Daily Attendance</h3>
+        <div class="form-row-3">
+            <div class="form-group"><label>Date:</label><input type="date" id="attendanceDate"></div>
+            <div class="form-group"><label>Class:</label><select id="attendanceClass" onchange="renderAttendanceTable()"></select></div>
+            <div class="form-group" style="display:flex; align-items:flex-end;"><button onclick="saveAttendance()"><i class="fas fa-save"></i>Save Attendance</button></div>
+        </div>
+        <div id="attendanceTableContainer"></div>
+      </div>
+    </div>
+
+    <!-- BURSARY -->
+    <div id="bursary" class="section">
+      <div class="card">
+        <h3><i class="fas fa-money-bill-wave"></i>Fee Management</h3>
+        <div class="form-row" style="margin-bottom:10px;">
+          <div class="form-group"><label>Class:</label><select id="feeClassSelect" onchange="updateFeeStudentList()"></select></div>
+          <div class="form-group"><label>School Fee per Term (₦):</label><input type="number" id="schoolFeeAmount" placeholder="e.g. 50000" oninput="saveFeeAmount()"></div>
+        </div>
+        <div class="form-row-3">
+            <div class="form-group"><label>Student:</label><select id="feeStudentSelect"></select></div>
+            <div class="form-group"><label>Amount Paid:</label><input type="number" id="feeAmount" placeholder="0.00"></div>
+            <div class="form-group" style="display:flex; align-items:flex-end;"><button onclick="recordPayment()"><i class="fas fa-plus"></i>Record Payment</button></div>
+        </div>
+        <table id="feeTable">
+            <thead><tr><th>Student ID</th><th>Name</th><th>Class</th><th>Fee Expected</th><th>Total Paid</th><th>Outstanding</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="feeTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div id="reports" class="section">
+      <div class="card">
+        <h3><i class="fas fa-file-invoice"></i>Generate Report Cards</h3>
+        <div class="form-row">
+            <div class="form-group"><label>Class:</label><select id="reportClassSelect" onchange="renderReportList()"></select></div>
+            <div class="form-group"><label>Term:</label><select id="reportTermSelect"><option>1st Term</option><option>2nd Term</option><option>3rd Term</option></select></div>
+        </div>
+        <div id="reportListContainer"></div>
+      </div>
+    </div>
+    <div id="dashboard" class="section active-section">
+      <!-- DASHBOARD STATS -->
+      <div id="dashboard_stats" class="stats-grid">
+          <div class="stat-card"><h4>Total Students</h4><div id="statTotalStudents" class="value">0</div></div>
+          <div class="stat-card"><h4>Male</h4><div id="statMaleStudents" class="value">0</div></div>
+          <div class="stat-card"><h4>Female</h4><div id="statFemaleStudents" class="value">0</div></div>
+          <div class="stat-card"><h4>Avg Performance</h4><div id="statAvgScore" class="value">0%</div></div>
+      </div>
+      <div class="card">
+          <h3><i class="fas fa-chart-line"></i>Performance Analytics</h3>
+          <div class="chart-container"><canvas id="performanceChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3><i class="fas fa-calendar-alt"></i>Select Term</h3>
+        <select id="termSelect">
+          <option>1st Term</option>
+          <option>2nd Term</option>
+          <option>3rd Term</option>
+        </select>
+        <p style="color:#64748b;font-size:13px;margin-top:8px;">Use the <strong>Score Entry</strong> section in the nav to view class results and enter student scores.</p>
+      </div>
+    </div>
+
+    <!-- SCORE ENTRY -->
+    <div id="scoreEntry" class="section">
+      <div class="card">
+        <h3><i class="fas fa-pen-nib"></i>Score Entry</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Term:</label>
+            <select id="scoreEntryTerm">
+              <option>1st Term</option>
+              <option>2nd Term</option>
+              <option>3rd Term</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3><i class="fas fa-list-ol"></i>Class Results &amp; Score Entry</h3>
+        <div id="scoreEntryTables"></div>
+      </div>
+    </div>
+
+    <!-- TEACHER ATTENDANCE -->
+    <div id="teacherAttendance" class="section">
+      <div class="card">
+        <h3><i class="fas fa-chalkboard-teacher"></i>Attendance — <span id="teacherClassName"></span></h3>
+        <div class="form-row-3">
+          <div class="form-group"><label>Date:</label><input type="date" id="teacherAttendanceDate"></div>
+          <div class="form-group" style="display:flex;align-items:flex-end;">
+            <button onclick="saveTeacherAttendance()"><i class="fas fa-save"></i>Save Attendance</button>
+          </div>
+        </div>
+        <div id="teacherAttendanceTableContainer"></div>
+      </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div id="students" class="section">
+      <div class="card">
+        <h3><i class="fas fa-user-plus"></i>Add Student</h3>
+        <div class="form-group">
+            <label>Student Name:</label>
+            <input id="studentName" placeholder="Full Name">
+        </div>
+        <div class="form-group">
+            <label>Sex (M/F):</label>
+            <input id="studentSex" placeholder="M or F">
+        </div>
+        <div class="form-group">
+            <label>Class:</label>
+            <select id="studentClass"></select>
+        </div>
+        <div class="form-group">
+            <label>Student ID:</label>
+            <input id="studentId" placeholder="Unique ID">
+        </div>
+        <button onclick="addStudent()"><i class="fas fa-plus"></i>Add Student</button>
+      </div>
+      <div class="card">
+        <h3><i class="fas fa-list"></i>All Students</h3>
+        <div class="form-group"><label>Filter by Class:</label>
+          <select id="studentListClassFilter" onchange="renderStudentList()">
+            <option value="">All Classes</option>
+          </select>
+        </div>
+        <div id="studentListContainer"></div>
+      </div>
+    </div>
+
+    <!-- EXCEL -->
+    <div id="excel" class="section">
+      <div class="card">
+        <h3><i class="fas fa-file-import"></i>Subject Excel</h3>
+        <div class="form-group">
+            <label>Subject:</label>
+            <select id="excelSubject"></select>
+        </div>
+        <div class="form-group">
+            <label>Class:</label>
+            <select id="excelClass"></select>
+        </div>
+        <button onclick="downloadSubjectExcel()"><i class="fas fa-download"></i>Download Sheet</button>
+        <br><br>
+        <div class="form-group">
+            <label>Upload Excel File:</label>
+            <input type="file" id="excelFile" accept=".xlsx,.xls">
+        </div>
+        <button onclick="uploadSubjectExcel()"><i class="fas fa-upload"></i>Upload</button>
+      </div>
+    </div>
+
+    <!-- DOWNLOAD DATA SECTION -->
+    <div id="downloadData" class="section">
+      <div class="card">
+        <h3><i class="fas fa-file-download"></i>Download Student Data per Class</h3>
+        <p>Select a class to download the complete list of students and their basic information.</p>
+        <div class="form-group">
+            <label>Select Class:</label>
+            <select id="downloadDataClass"></select>
+        </div>
+        <button onclick="downloadClassStudentData()"><i class="fas fa-file-excel"></i>Download Student List (Excel)</button>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="settings" class="section">
+      <div class="card">
+        <h3><i class="fas fa-shield-alt"></i>Admin Security</h3>
+        <div class="form-group">
+            <label>New Admin Password:</label>
+            <input type="password" id="newAdminPassword" placeholder="Enter New Password">
+        </div>
+        <div class="form-group">
+            <label>Confirm New Password:</label>
+            <input type="password" id="confirmAdminPassword" placeholder="Confirm New Password">
+        </div>
+        <button onclick="changePassword()"><i class="fas fa-key"></i>Update Password</button>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-users-cog"></i>Staff Management</h3>
+        <div class="form-group">
+            <label>Principal's Name:</label>
+            <input type="text" id="principalNameInput" placeholder="Enter Principal's Name">
+        </div>
+        <button onclick="savePrincipalName()"><i class="fas fa-save"></i>Save Principal Name</button>
+        <hr>
+        <h4>Form Masters (Class Teachers)</h4>
+        <div id="formMastersContainer">
+            <!-- Dynamically generated -->
+        </div>
+        <button onclick="saveFormMasters()"><i class="fas fa-save"></i>Save All Form Masters</button>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-school"></i>School Identity</h3>
+        <div class="form-group">
+            <label>School Name:</label>
+            <input type="text" id="schoolNameInput" placeholder="Enter School Name">
+        </div>
+        <div class="form-group">
+            <label>School Address/Info:</label>
+            <textarea id="schoolInfoInput" rows="3" placeholder="Enter School Address and other info"></textarea>
+        </div>
+        <button onclick="saveSchoolIdentity()"><i class="fas fa-save"></i>Save Identity</button>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-image"></i>School Logo & Stamp</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Upload School Logo:</label>
+            <input type="file" id="logoFile" accept="image/*">
+            <button onclick="uploadLogo()"><i class="fas fa-upload"></i>Upload Logo</button>
+            <div id="logoContainer">
+               <img id="logoPreview" class="logo-preview" style="display:none;">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Upload School Stamp:</label>
+            <input type="file" id="stampFile" accept="image/*">
+            <button onclick="uploadStamp()"><i class="fas fa-upload"></i>Upload Stamp</button>
+            <div id="stampContainer">
+               <img id="stampPreview" class="stamp-preview" style="display:none;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-graduation-cap"></i>Academic Settings</h3>
+        <label>Next Term Resumption Date:</label>
+        <input type="date" id="resumptionDate">
+        <button onclick="saveResumptionDate()"><i class="fas fa-save"></i>Save Date</button>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-database"></i>Data Backup & Restore</h3>
+        <button onclick="backupData()"><i class="fas fa-cloud-download-alt"></i>Download Backup</button>
+        <br><br>
+        <label>Restore from Backup:</label>
+        <input type="file" onchange="restoreData(event)">
+      </div>
+    </div>
+  </div>
+
+  <!-- SCORE MODAL -->
+  <div id="scoreModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">×</span>
+      <h3 id="modalStudentName"></h3>
+      <div id="scoresSection"></div>
+      <div id="skillsSection"></div>
+      <div id="remarksSection"></div>
+      <br>
+      <button onclick="saveScores()"><i class="fas fa-save"></i>Save Scores</button>
+    </div>
+  </div>
+
+  <script>
+    /* ================= DATA ================= */
+    const classes=["JSS1","JSS2","JSS3","SSS1","SSS2","SSS3"];
+    const subjectStructure={
+      JSS:["Mathematics","English","Basic Science","Digital Tech","CCA","National Value","CRS","History","Business Studies","PHE","Prevocational Studies"],
+      SSS:["Mathematics","English","Physics","Chemistry","Biology","Further Math","Computer","Economics","Government","CRK","IRK"]
+    };
+
+    const affectiveSkills=["Behavioral Traits","Punctuality","Regularity","Neatness","Maturity","Studies","Politeness","Friendliness","Cooperation","Co-Operation","Rate of Work","Leadership","Creativity"];
+
+    const psychomotorSkills=["Handwriting","Games","Arts & Crafts","Home Skills","Verbal Fluency","Attentiveness"];
+
+    let students=JSON.parse(localStorage.getItem("students"))||[];
+    let scores=JSON.parse(localStorage.getItem("scores"))||[];
+    let skills=JSON.parse(localStorage.getItem("skills"))||[];
+    let remarks=JSON.parse(localStorage.getItem("remarks"))||[];
+    let resumptionDate=localStorage.getItem("resumptionDate")||"";
+    let schoolLogo=localStorage.getItem("schoolLogo")||null;
+    let schoolStamp=localStorage.getItem("schoolStamp")||null;
+    let schoolName=localStorage.getItem("schoolName")||"Phil Ed Tech School Admin";
+    let schoolInfo=localStorage.getItem("schoolInfo")||"Ganaja Village - Kogi State";
+    let adminPass=localStorage.getItem("adminPass")||"admin123";
+    let principalName=localStorage.getItem("principalName")||"";
+    let formMasters=JSON.parse(localStorage.getItem("formMasters"))||{};
+    let currentEditStudentId=null;
+    let currentTeacherClass=null;
+    // License/subscription
+    let licenseMode = localStorage.getItem("licenseMode") || ""; // "demo" or "full"
+    let licenseKey = localStorage.getItem("licenseKey") || "";
+    let licenseExpiry = localStorage.getItem("licenseExpiry") || "";
+    let licensePlan = localStorage.getItem("licensePlan") || "";
+    // Legacy static keys fallback
+    const validLicenseKeys = ["PHIL-2024-GOLD","PHIL-2025-PREM","PHIL-DEMO-FULL"];
+    const DEMO_STUDENT_LIMIT = 5;
+    // Fee settings
+    let schoolFeePerTerm = parseFloat(localStorage.getItem("schoolFeePerTerm")) || 0;
+
+    /* ================= SETUP ================= */
+    
+    function setupDropdowns(){
+      const sClass = document.getElementById("studentClass");
+      const eClass = document.getElementById("excelClass");
+      const eSubject = document.getElementById("excelSubject");
+      const dClass = document.getElementById("downloadDataClass");
+      const attClass = document.getElementById("attendanceClass");
+      const repClass = document.getElementById("reportClassSelect");
+      const feeStudent = document.getElementById("feeStudentSelect");
+      const feeClass = document.getElementById("feeClassSelect");
+      const teacherClass = document.getElementById("teacherClassSelect");
+      
+      if(sClass) sClass.innerHTML="";
+      if(eClass) eClass.innerHTML="";
+      if(eSubject) eSubject.innerHTML="";
+      if(dClass) dClass.innerHTML="";
+      if(attClass) attClass.innerHTML="";
+      if(repClass) repClass.innerHTML="";
+      if(feeStudent) feeStudent.innerHTML="";
+      if(feeClass) feeClass.innerHTML="";
+      if(teacherClass) teacherClass.innerHTML="";
+
+      classes.forEach(c=>{
+        if(sClass) sClass.add(new Option(c,c));
+        if(eClass) eClass.add(new Option(c,c));
+        if(dClass) dClass.add(new Option(c,c));
+        if(attClass) attClass.add(new Option(c,c));
+        if(repClass) repClass.add(new Option(c,c));
+        if(teacherClass) teacherClass.add(new Option(c,c));
+      });
+      
+      [...subjectStructure.JSS,...subjectStructure.SSS].forEach(s=>{
+        if(eSubject) eSubject.add(new Option(s,s));
+      });
+
+      if(feeClass) {
+        classes.forEach(c => feeClass.add(new Option(c, c)));
+      }
+      if(feeStudent) {
+        const firstClass = classes[0] || "";
+        students.filter(s => s.className === firstClass).forEach(s => feeStudent.add(new Option(`${s.name} (${s.id})`, s.id)));
+      }
+    }
+
+    function setupStaffInputs(){
+        const container = document.getElementById("formMastersContainer");
+        if(!container) return;
+        container.innerHTML = "";
+        classes.forEach(cls => {
+            const div = document.createElement("div");
+            div.className = "form-group";
+            div.innerHTML = `
+                <label>Form Master for ${cls}:</label>
+                <input type="text" id="fm_${cls}" value="${formMasters[cls] || ''}" placeholder="Enter Teacher's Name">
+            `;
+            container.appendChild(div);
+        });
+        if(document.getElementById("principalNameInput")){
+            document.getElementById("principalNameInput").value = principalName;
+        }
+    }
+
+    // Initialize UI
+    
+    window.onload = function() {
+      // Check license on load
+      if(!licenseMode) {
+        document.getElementById("licenseScreen").style.display = "flex";
+      } else {
+        document.getElementById("licenseScreen").style.display = "none";
+        document.getElementById("loginScreen").style.display = "flex";
+        applyLicenseUI();
+      }
+
+      setupDropdowns();
+      setupStaffInputs();
+      
+      if(document.getElementById("resumptionDate")){
+        document.getElementById("resumptionDate").value=resumptionDate;
+      }
+
+      if(document.getElementById("schoolNameInput")){
+        document.getElementById("schoolNameInput").value=schoolName;
+      }
+      if(document.getElementById("schoolInfoInput")){
+        document.getElementById("schoolInfoInput").value=schoolInfo;
+      }
+      
+      document.getElementById("navSchoolName").textContent=schoolName;
+
+      if(schoolLogo){
+        const lp=document.getElementById("logoPreview");
+        if(lp){lp.src=schoolLogo;lp.style.display="block";}
+        const nl=document.getElementById("navLogo");
+        if(nl){nl.src=schoolLogo;nl.style.display="block";}
+      }
+      if(schoolStamp){
+        const sp=document.getElementById("stampPreview");
+        if(sp){sp.src=schoolStamp;sp.style.display="block";}
+      }
+
+      // Populate student list class filter
+      const slf = document.getElementById("studentListClassFilter");
+      if(slf){ classes.forEach(c=> slf.add(new Option(c,c))); }
+
+      // Set school fee input
+      if(document.getElementById("schoolFeeAmount")){
+        document.getElementById("schoolFeeAmount").value = schoolFeePerTerm || "";
+      }
+
+      renderClassTables();
+      renderScoreEntryTables();
+      updateDashboardStats();
+      renderFeeTable();
+      renderAttendanceTable();
+      renderStudentList();
+    };
+    
+
+    /* ================= CORE FUNCTIONS ================= */
+
+    function switchLoginTab(tab){
+      document.getElementById("loginAdminTab").style.display = tab==='admin' ? 'block' : 'none';
+      document.getElementById("loginTeacherTab").style.display = tab==='teacher' ? 'block' : 'none';
+      document.getElementById("tabAdmin").style.background = tab==='admin' ? '#2563eb' : '#94a3b8';
+      document.getElementById("tabTeacher").style.background = tab==='teacher' ? '#2563eb' : '#94a3b8';
+    }
+
+    /* ================= LICENSE SYSTEM ================= */
+    // Shared secret — must match the one in the developer panel exactly
+    const PHIL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziyZT6wGKqehsIiJum9TvHBJEuZ1J49auoVXxRkveQuTTgbBzMJW2sMIM6BvUvFlGsTw/exec";
+
+    // Generate a fingerprint unique to this device
+    async function getDeviceFingerprint() {
+      const raw = [
+        navigator.platform,
+        navigator.language,
+        screen.width + 'x' + screen.height,
+        screen.colorDepth,
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
+        navigator.hardwareConcurrency || 0,
+        navigator.userAgent.slice(0, 80)
+      ].join('|');
+      const encoder = new TextEncoder();
+      const data = encoder.encode(raw);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+      return hex.slice(0, 32).toUpperCase();
+    }
+
+    async function activateLicense(){
+      const key = document.getElementById("licenseKeyInput").value.trim().toUpperCase();
+      if(!key){ alert("Please enter a license key."); return; }
+
+      // Show loading state
+      const btn = document.querySelector('#licenseScreen button');
+      const origText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+      btn.disabled = true;
+
+      try {
+        const device = await getDeviceFingerprint();
+
+        const res = await fetch(PHIL_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "activate", key, device })
+        });
+        const result = await res.json();
+
+        if(!result.success){
+          alert(result.message);
+          return;
+        }
+
+        // Parse expiry from Google Sheet value (YYYY-MM-DD)
+        const expiryRaw = result.expiry;
+        const expiryDate = new Date(expiryRaw);
+        const today = new Date(); today.setHours(0,0,0,0);
+
+        if(expiryDate < today){
+          alert(`❌ This license key expired on ${expiryDate.toDateString()}.\n\nPlease contact Phil Ed Tech to renew.`);
+          return;
+        }
+
+        const plan = result.plan;
+        const daysLeft = Math.ceil((expiryDate - today) / 86400000);
+
+        licenseMode = "full";
+        licenseKey = key;
+        licenseExpiry = expiryDate.toISOString().slice(0,10);
+        licensePlan = plan;
+        localStorage.setItem("licenseMode","full");
+        localStorage.setItem("licenseKey", key);
+        localStorage.setItem("licenseExpiry", licenseExpiry);
+        localStorage.setItem("licensePlan", plan);
+        localStorage.setItem("philDeviceFP", device);
+
+        document.getElementById("licenseScreen").style.display="none";
+        document.getElementById("loginScreen").style.display="flex";
+        applyLicenseUI();
+        alert(`✅ License Activated!\n\nPlan: ${plan==='1Y'?'1 Year':'3 Months'}\nExpires: ${expiryDate.toDateString()}\nDays remaining: ${daysLeft}\n\n🔒 This key is now locked to this device.`);
+
+      } catch(err) {
+        alert("⚠️ Could not connect to the license server.\n\nPlease check your internet connection and try again.");
+      } finally {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+      }
+    }
+
+    function startDemo(){
+      licenseMode = "demo";
+      localStorage.setItem("licenseMode","demo");
+      document.getElementById("licenseScreen").style.display="none";
+      document.getElementById("loginScreen").style.display="flex";
+      applyLicenseUI();
+    }
+
+    function showLicenseScreen(){
+      if(licenseMode === "full"){
+        // Already activated — show info modal instead
+        const expDate = new Date(licenseExpiry);
+        const today = new Date(); today.setHours(0,0,0,0);
+        const daysLeft = Math.ceil((expDate - today) / 86400000);
+        const planLabel = licensePlan === '1Y' ? '1 Year' : '3 Months';
+        document.getElementById("licInfoKey").textContent = licenseKey;
+        document.getElementById("licInfoPlan").textContent = planLabel;
+        document.getElementById("licInfoExpiry").textContent = expDate.toDateString();
+        document.getElementById("licInfoDays").textContent = daysLeft + " days remaining";
+        document.getElementById("licInfoDays").style.color = daysLeft <= 30 ? "#dc2626" : "#16a34a";
+        document.getElementById("licenseInfoModal").style.display = "flex";
+      } else {
+        document.getElementById("licenseScreen").style.display="flex";
+      }
+    }
+
+    function closeLicenseInfoModal(){
+      document.getElementById("licenseInfoModal").style.display = "none";
+    }
+
+    function applyLicenseUI(){
+      const badge = document.getElementById("licenseBadge");
+      const demoBanner = document.getElementById("demoBanner");
+
+      // If licensed, check if key has expired
+      if(licenseMode === "full" && licenseExpiry){
+        const today = new Date(); today.setHours(0,0,0,0);
+        const expDate = new Date(licenseExpiry);
+        if(expDate < today){
+          // Expired — downgrade to demo
+          licenseMode = "demo";
+          localStorage.setItem("licenseMode","demo");
+          alert("⚠️ Your license key expired on " + expDate.toDateString() + ".\n\nYou have been moved to Demo mode. Contact Phil Ed Tech to renew.");
+        }
+      }
+
+      if(licenseMode === "full"){
+        const planLabel = licensePlan === "1Y" ? "1-Year" : licensePlan === "3M" ? "3-Month" : "";
+        const expiryLabel = licenseExpiry ? " · Exp: " + licenseExpiry : "";
+        if(badge){ badge.textContent = "✓ " + (planLabel ? planLabel + " License" : "LICENSED") + expiryLabel; badge.className="license-badge"; }
+        if(demoBanner) demoBanner.style.display="none";
+      } else {
+        if(badge){ badge.textContent="DEMO"; badge.className="license-badge demo"; }
+        if(demoBanner) demoBanner.style.display="block";
+      }
+    }
+
+    function isFullAccess(){ return licenseMode === "full"; }
+
+    function checkDemoLimit(){
+      if(licenseMode === "full") return true;
+      if(students.length >= DEMO_STUDENT_LIMIT){
+        alert(`⚠️ Demo limit reached (${DEMO_STUDENT_LIMIT} students max).\nPlease activate a license key to add more students.`);
+        return false;
+      }
+      return true;
+    }
+
+    /* ================= FEE AMOUNT ================= */
+    function saveFeeAmount(){
+      schoolFeePerTerm = parseFloat(document.getElementById("schoolFeeAmount").value) || 0;
+      localStorage.setItem("schoolFeePerTerm", schoolFeePerTerm);
+      renderFeeTable();
+    }
+
+    /* ================= STUDENT LIST ================= */
+    function renderStudentList(){
+      const container = document.getElementById("studentListContainer");
+      if(!container) return;
+      const filterClass = document.getElementById("studentListClassFilter") ? document.getElementById("studentListClassFilter").value : "";
+      const filtered = filterClass ? students.filter(s=>s.className===filterClass) : students;
+      if(filtered.length===0){ container.innerHTML="<p style='color:#64748b;'>No students yet.</p>"; return; }
+      let html=`<table><thead><tr><th>ID</th><th>Name</th><th>Sex</th><th>Class</th><th>Action</th></tr></thead><tbody>`;
+      filtered.forEach(s=>{
+        html+=`<tr><td>${s.id}</td><td>${s.name}</td><td>${s.sex}</td><td>${s.className}</td>
+          <td><button onclick="deleteStudent('${s.id}')" style="background:#dc2626;"><i class="fas fa-trash"></i> Delete</button></td></tr>`;
+      });
+      html+=`</tbody></table>`;
+      container.innerHTML=html;
+    }
+
+    function adminLogin(){
+      const pass=document.getElementById("adminPassword").value;
+      if(pass===adminPass){
+        document.getElementById("loginScreen").style.display="none";
+        document.getElementById("adminNav").style.display="";
+        document.getElementById("teacherNav").style.display="none";
+        document.getElementById("userRoleBadge").textContent="Admin";
+        userRole="Admin";
+        applyLicenseUI();
+      }else{
+        alert("Wrong Password");
+      }
+    }
+
+    function teacherLogin(){
+      const cls = document.getElementById("teacherClassSelect").value;
+      const pass = document.getElementById("teacherPassword").value;
+      // Teacher password = class name (e.g. JSS1)
+      if(pass === cls){
+        currentTeacherClass = cls;
+        document.getElementById("loginScreen").style.display="none";
+        document.getElementById("adminNav").style.display="none";
+        document.getElementById("teacherNav").style.display="";
+        document.getElementById("userRoleBadge").textContent=`Teacher · ${cls}`;
+        document.getElementById("teacherClassName").textContent=cls;
+        userRole="Teacher";
+        // Set today's date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById("teacherAttendanceDate").value = today;
+        renderTeacherAttendanceTable();
+        showSection('teacherAttendance');
+      } else {
+        alert("Wrong password. Use your class name as password (e.g. JSS1)");
+      }
+    }
+
+    function logout(){
+      location.reload();
+    }
+
+    function showSection(id){
+      // Demo mode locks certain sections
+      const premiumSections = ['excel','downloadData','reports'];
+      if(!isFullAccess() && premiumSections.includes(id)){
+        if(!confirm("⭐ This feature requires a full license.\n\nContact Phil Ed Tech to get your license key.\n\nPress OK to activate your license now.")){
+          return;
+        }
+        showLicenseScreen();
+        return;
+      }
+      document.querySelectorAll(".section").forEach(s=>s.classList.remove("active-section"));
+      document.getElementById(id).classList.add("active-section");
+      if(id === 'dashboard') updateDashboardStats();
+      if(id === 'bursary') { setupDropdowns(); updateFeeStudentList(); renderFeeTable(); }
+      if(id === 'attendance') renderAttendanceTable();
+      if(id === 'reports') renderReportList();
+      if(id === 'scoreEntry') renderScoreEntryTables();
+      if(id === 'teacherAttendance') renderTeacherAttendanceTable();
+      if(id === 'students') renderStudentList();
+    }
+    
+
+    function saveData(){
+      localStorage.setItem("students",JSON.stringify(students));
+      localStorage.setItem("scores",JSON.stringify(scores));
+      localStorage.setItem("skills",JSON.stringify(skills));
+      localStorage.setItem("remarks",JSON.stringify(remarks));
+    }
+
+    function changePassword(){
+      const newPass=document.getElementById("newAdminPassword").value;
+      const confirmPass=document.getElementById("confirmAdminPassword").value;
+      
+      if(!newPass) return alert("Please enter a new password");
+      if(newPass !== confirmPass) return alert("Passwords do not match! Please check and try again.");
+      
+      adminPass=newPass;
+      localStorage.setItem("adminPass",adminPass);
+      document.getElementById("newAdminPassword").value="";
+      document.getElementById("confirmAdminPassword").value="";
+      alert("Password updated successfully!");
+    }
+
+    function savePrincipalName(){
+        principalName = document.getElementById("principalNameInput").value;
+        localStorage.setItem("principalName", principalName);
+        alert("Principal Name Saved");
+    }
+
+    function saveFormMasters(){
+        classes.forEach(cls => {
+            formMasters[cls] = document.getElementById(`fm_${cls}`).value;
+        });
+        localStorage.setItem("formMasters", JSON.stringify(formMasters));
+        alert("Form Masters Saved");
+    }
+
+    function addStudent(){
+      if(!checkDemoLimit()) return;
+      const name=document.getElementById("studentName").value.trim();
+      const sex=document.getElementById("studentSex").value.trim().toUpperCase();
+      const className=document.getElementById("studentClass").value;
+      const id=document.getElementById("studentId").value.trim();
+      if(!name||!id) return alert("Fill all fields");
+      if(students.find(s=>s.id===id)) return alert("ID already exists");
+      students.push({name,sex,className,id});
+      saveData();renderClassTables();renderStudentList();
+      // refresh fee student dropdown
+      setupDropdowns();
+      document.getElementById("studentName").value="";
+      document.getElementById("studentId").value="";
+      alert("Student Added");
+    }
+
+    function deleteStudent(id){
+      if(!confirm("Delete this student and all their data?"))return;
+      students=students.filter(s=>s.id!==id);
+      scores=scores.filter(s=>s.studentId!==id);
+      skills=skills.filter(s=>s.studentId!==id);
+      remarks=remarks.filter(r=>r.studentId!==id);
+      delete fees[id];
+      localStorage.setItem("fees", JSON.stringify(fees));
+      saveData();renderClassTables();renderStudentList();renderFeeTable();
+      setupDropdowns();
+    }
+
+    function saveSchoolIdentity(){
+      schoolName=document.getElementById("schoolNameInput").value;
+      schoolInfo=document.getElementById("schoolInfoInput").value;
+      localStorage.setItem("schoolName",schoolName);
+      localStorage.setItem("schoolInfo",schoolInfo);
+      document.getElementById("navSchoolName").textContent=schoolName;
+      alert("Identity Saved");
+    }
+
+    function uploadLogo(){
+      const file=document.getElementById("logoFile").files[0];
+      if(!file)return;
+      const reader=new FileReader();
+      reader.onload=e=>{
+        schoolLogo=e.target.result;
+        localStorage.setItem("schoolLogo",schoolLogo);
+        const lp=document.getElementById("logoPreview");
+        lp.src=schoolLogo;lp.style.display="block";
+        const nl=document.getElementById("navLogo");
+        nl.src=schoolLogo;nl.style.display="block";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function uploadStamp(){
+      const file=document.getElementById("stampFile").files[0];
+      if(!file)return;
+      const reader=new FileReader();
+      reader.onload=e=>{
+        schoolStamp=e.target.result;
+        localStorage.setItem("schoolStamp",schoolStamp);
+        const sp=document.getElementById("stampPreview");
+        sp.src=schoolStamp;sp.style.display="block";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveResumptionDate(){
+      resumptionDate=document.getElementById("resumptionDate").value;
+      localStorage.setItem("resumptionDate",resumptionDate);
+      alert("Date Saved");
+    }
+
+    function backupData(){
+      const data={students,scores,skills,remarks,schoolName,schoolInfo,resumptionDate,schoolLogo,schoolStamp,adminPass,principalName,formMasters};
+      const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url;a.download="school_data_backup.json";
+      a.click();
+    }
+
+    function restoreData(e){
+      const file=e.target.files[0];
+      if(!file)return;
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        const data=JSON.parse(ev.target.result);
+        students=data.students||[];
+        scores=data.scores||[];
+        skills=data.skills||[];
+        remarks=data.remarks||[];
+        schoolName=data.schoolName||"Phil Ed Tech School Admin";
+        schoolInfo=data.schoolInfo||"";
+        resumptionDate=data.resumptionDate||"";
+        schoolLogo=data.schoolLogo||null;
+        schoolStamp=data.schoolStamp||null;
+        adminPass=data.adminPass||"admin123";
+        principalName=data.principalName||"";
+        formMasters=data.formMasters||{};
+        saveData();
+        localStorage.setItem("schoolName",schoolName);
+        localStorage.setItem("schoolInfo",schoolInfo);
+        localStorage.setItem("resumptionDate",resumptionDate);
+        localStorage.setItem("schoolLogo",schoolLogo);
+        localStorage.setItem("schoolStamp",schoolStamp);
+        localStorage.setItem("adminPass",adminPass);
+        localStorage.setItem("principalName",principalName);
+        localStorage.setItem("formMasters",JSON.stringify(formMasters));
+        location.reload();
+      };
+      reader.readAsText(file);
+    }
+
+    /* ================= HELPERS ================= */
+    function getSubjectsForClass(cls){
+      return cls.startsWith("JSS")?subjectStructure.JSS:subjectStructure.SSS;
+    }
+
+    function getGrade(t){
+      if(t>=70)return "A";if(t>=60)return "B";if(t>=50)return "C";
+      if(t>=45)return "D";if(t>=40)return "E";return "F";
+    }
+
+    function getHighestInClass(sub,cls,term){
+      const stuIds=students.filter(s=>s.className===cls).map(s=>s.id);
+      const scs=scores.filter(s=>stuIds.includes(s.studentId)&&s.subject===sub&&s.term===term);
+      return scs.length?Math.max(...scs.map(s=>s.total)):0;
+    }
+
+    function getLowestInClass(sub,cls,term){
+      const stuIds=students.filter(s=>s.className===cls).map(s=>s.id);
+      const scs=scores.filter(s=>stuIds.includes(s.studentId)&&s.subject===sub&&s.term===term);
+      return scs.length?Math.min(...scs.map(s=>s.total)):0;
+    }
+
+    function renderClassTables(){
+      const container=document.getElementById("classTables");
+      if(!container) return;
+      container.innerHTML="";
+      const term=document.getElementById("termSelect").value;
+      classes.forEach(cls=>{
+        const clsStudents=students.filter(s=>s.className===cls);
+        if(clsStudents.length===0)return;
+        const results=clsStudents.map(s=>{
+          const subjectCount=getSubjectsForClass(s.className).length;
+          const total=scores.filter(sc=>sc.studentId===s.id&&sc.term===term).reduce((a,b)=>a+(parseFloat(b.total)||0),0);
+          const avg=subjectCount>0?(total/subjectCount).toFixed(1):0;
+          return {id:s.id,name:s.name,total,avg};
+        }).sort((a,b)=>b.total-a.total);
+        let html=`<h4>${cls}</h4><table><tr><th>ID</th><th>Name</th><th>Total Score</th><th>Average</th><th>Position</th><th>Actions</th></tr>`;
+        results.forEach((r,i)=>{
+          html+=`<tr><td>${r.id}</td>
+            <td>${r.name}</td>
+            <td>${r.total}</td>
+            <td>${r.avg}</td>
+            <td>${i+1}</td>
+            <td>
+              <button onclick="openScoreModal('${r.id}')">Scores</button>
+              <button onclick="generateResultPDF('${r.id}')">PDF</button>
+              <button onclick="deleteStudent('${r.id}')" style="background:#dc2626;"><i class='fas fa-trash'></i></button>
+            </td></tr>`;
+        });
+        html+="</table>";
+        container.innerHTML+=html;
+      });
+    }
+    document.getElementById("termSelect").onchange=renderClassTables;
+
+    /* ================= SCORE ENTRY SECTION ================= */
+    function renderScoreEntryTables(){
+      const container=document.getElementById("scoreEntryTables");
+      if(!container) return;
+      container.innerHTML="";
+      const term=document.getElementById("scoreEntryTerm").value;
+      classes.forEach(cls=>{
+        const clsStudents=students.filter(s=>s.className===cls);
+        if(clsStudents.length===0)return;
+        const results=clsStudents.map(s=>{
+          const subjectCount=getSubjectsForClass(s.className).length;
+          const total=scores.filter(sc=>sc.studentId===s.id&&sc.term===term).reduce((a,b)=>a+(parseFloat(b.total)||0),0);
+          const avg=subjectCount>0?(total/subjectCount).toFixed(1):0;
+          return {id:s.id,name:s.name,total,avg};
+        }).sort((a,b)=>b.total-a.total);
+        let html=`<h4 style="margin-top:20px;color:#2563eb;">${cls}</h4><table><tr><th>ID</th><th>Name</th><th>Total Score</th><th>Average</th><th>Position</th><th>Actions</th></tr>`;
+        results.forEach((r,i)=>{
+          html+=`<tr><td>${r.id}</td>
+            <td>${r.name}</td>
+            <td>${r.total}</td>
+            <td>${r.avg}</td>
+            <td>${i+1}</td>
+            <td>
+              <button onclick="openScoreModalFromEntry('${r.id}')"><i class="fas fa-edit"></i> Enter Scores</button>
+              <button onclick="generateResultPDF('${r.id}')"><i class="fas fa-file-pdf"></i> PDF</button>
+              <button onclick="deleteStudent('${r.id}')" style="background:#dc2626;"><i class='fas fa-trash'></i></button>
+            </td></tr>`;
+        });
+        html+="</table>";
+        container.innerHTML+=html;
+      });
+      if(container.innerHTML==="") container.innerHTML="<p style='color:#64748b;'>No students found. Add students first.</p>";
+    }
+    document.getElementById("scoreEntryTerm").onchange=renderScoreEntryTables;
+
+    function openScoreModalFromEntry(id){
+      // Sync term from score entry section
+      const term=document.getElementById("scoreEntryTerm").value;
+      document.getElementById("termSelect").value=term;
+      openScoreModal(id);
+    }
+
+    /* ================= TEACHER ATTENDANCE ================= */
+    function renderTeacherAttendanceTable(){
+      if(!currentTeacherClass) return;
+      const date = document.getElementById("teacherAttendanceDate").value || new Date().toISOString().split('T')[0];
+      document.getElementById("teacherAttendanceDate").value = date;
+      const classStudents = students.filter(s => s.className === currentTeacherClass);
+      if(classStudents.length===0){
+        document.getElementById("teacherAttendanceTableContainer").innerHTML="<p style='color:#64748b;'>No students in this class yet.</p>";
+        return;
+      }
+      let html = `<table class="attendance-table"><thead><tr><th>Student ID</th><th>Name</th><th>Status</th></tr></thead><tbody>`;
+      classStudents.forEach(s => {
+        const status = (attendance[date] && attendance[date][s.id]) || "Present";
+        html += `<tr>
+          <td>${s.id}</td>
+          <td>${s.name}</td>
+          <td>
+            <select onchange="updateAttendanceStatus('${date}', '${s.id}', this.value)">
+              <option value="Present" ${status==='Present'?'selected':''}>✅ Present</option>
+              <option value="Absent" ${status==='Absent'?'selected':''}>❌ Absent</option>
+              <option value="Late" ${status==='Late'?'selected':''}>⏰ Late</option>
+            </select>
+          </td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+      document.getElementById("teacherAttendanceTableContainer").innerHTML = html;
+    }
+
+    document.getElementById("teacherAttendanceDate").onchange = renderTeacherAttendanceTable;
+
+    function saveTeacherAttendance(){
+      localStorage.setItem("attendance", JSON.stringify(attendance));
+      alert("Attendance saved successfully!");
+    }
+
+    /* ================= SCORES ================= */
+    function openScoreModal(id){
+      currentEditStudentId=id;
+      let stu=students.find(s=>s.id===id);
+      let term=document.getElementById("scoreEntryTerm").value || document.getElementById("termSelect").value;
+      document.getElementById("modalStudentName").textContent=`${stu.name} (${term})`;
+
+      // Scores Section
+      let html=`<h4>Academic Scores</h4><table><tr>
+        <th>Subject</th><th>CA1</th><th>CA2</th><th>CA3</th><th>Exam</th><th>Total</th><th>Grade</th></tr>`;
+      getSubjectsForClass(stu.className).forEach(sub=>{
+        let sc=scores.find(s=>s.studentId===id&&s.subject===sub&&s.term===term)
+          ||{ca1:0,ca2:0,ca3:0,exam:0,total:0};
+        let k=sub.replace(/\s/g,"_");
+        html+=`<tr>
+          <td>${sub}</td>
+          <td><input type="number" id="ca1_${k}" value="${sc.ca1}" oninput="calc('${k}')"></td>
+          <td><input type="number" id="ca2_${k}" value="${sc.ca2}" oninput="calc('${k}')"></td>
+          <td><input type="number" id="ca3_${k}" value="${sc.ca3}" oninput="calc('${k}')"></td>
+          <td><input type="number" id="exam_${k}" value="${sc.exam}" oninput="calc('${k}')"></td>
+          <td id="total_${k}">${sc.total}</td>
+          <td id="grade_${k}">${getGrade(sc.total)}</td>
+        </tr>`;
+      });
+      document.getElementById("scoresSection").innerHTML=html+"</table>";
+
+      // Skills Section
+      let skillsHtml=`<h4>Affective Skills (Behavioral Traits)</h4><table><tr><th>Skill</th><th>Rating (1-5)</th></tr>`;
+      affectiveSkills.forEach(skill=>{
+        let sk=skills.find(s=>s.studentId===id&&s.type==="affective"&&s.name===skill&&s.term===term)||{rating:0};
+        skillsHtml+=`<tr><td>${skill}</td><td><input type="number" id="aff_${skill.replace(/\s/g,"_")}" value="${sk.rating}" min="0" max="5"></td></tr>`;
+      });
+      skillsHtml+=`</table><h4>Psychomotor Skills</h4><table><tr><th>Skill</th><th>Rating (1-5)</th></tr>`;
+      psychomotorSkills.forEach(skill=>{
+        let sk=skills.find(s=>s.studentId===id&&s.type==="psychomotor"&&s.name===skill&&s.term===term)||{rating:0};
+        skillsHtml+=`<tr><td>${skill}</td><td><input type="number" id="psy_${skill.replace(/\s/g,"_")}" value="${sk.rating}" min="0" max="5"></td></tr>`;
+      });
+      document.getElementById("skillsSection").innerHTML=skillsHtml+"</table>";
+
+      // Remarks Section
+      let rem=remarks.find(r=>r.studentId===id&&r.term===term)||{formMasterRemark:"",principalRemark:"",formMasterName:"",principalName:""};
+      let remarksHtml=`<h4>Remarks & Information</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Form Master's Name:</label>
+            <input type="text" id="formMasterName" value="${rem.formMasterName || formMasters[stu.className] || ''}">
+          </div>
+          <div class="form-group">
+            <label>Principal's Name:</label>
+            <input type="text" id="principalName" value="${rem.principalName || principalName || ''}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Form Master's Remark:</label>
+          <textarea id="formMasterRemark" rows="3">${rem.formMasterRemark}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Principal's Remark:</label>
+          <textarea id="principalRemark" rows="3">${rem.principalRemark}</textarea>
+        </div>`;
+      document.getElementById("remarksSection").innerHTML=remarksHtml;
+      document.getElementById("scoreModal").style.display="block";
+    }
+
+    function calc(k){
+      const ca1=+document.getElementById("ca1_"+k).value||0;
+      const ca2=+document.getElementById("ca2_"+k).value||0;
+      const ca3=+document.getElementById("ca3_"+k).value||0;
+      const exam=+document.getElementById("exam_"+k).value||0;
+      const total=ca1+ca2+ca3+exam;
+      document.getElementById("total_"+k).textContent=total;
+      document.getElementById("grade_"+k).textContent=getGrade(total);
+    }
+
+    function saveScores(){
+      let stu=students.find(s=>s.id===currentEditStudentId);
+      let term=document.getElementById("scoreEntryTerm").value || document.getElementById("termSelect").value;
+      getSubjectsForClass(stu.className).forEach(sub=>{
+        let k=sub.replace(/\s/g,"_");
+        let ca1=+document.getElementById("ca1_"+k).value||0;
+        let ca2=+document.getElementById("ca2_"+k).value||0;
+        let ca3=+document.getElementById("ca3_"+k).value||0;
+        let exam=+document.getElementById("exam_"+k).value||0;
+        let total=ca1+ca2+ca3+exam;
+        let sc=scores.find(s=>s.studentId===stu.id&&s.subject===sub&&s.term===term);
+        if(sc){Object.assign(sc,{ca1,ca2,ca3,exam,total});}
+        else scores.push({studentId:stu.id,subject:sub,ca1,ca2,ca3,exam,total,term});
+      });
+      affectiveSkills.forEach(skill=>{
+        let rating=+document.getElementById("aff_"+skill.replace(/\s/g,"_")).value||0;
+        let sk=skills.find(s=>s.studentId===stu.id&&s.type==="affective"&&s.name===skill&&s.term===term);
+        if(sk){sk.rating=rating;}
+        else skills.push({studentId:stu.id,type:"affective",name:skill,rating,term});
+      });
+      psychomotorSkills.forEach(skill=>{
+        let rating=+document.getElementById("psy_"+skill.replace(/\s/g,"_")).value||0;
+        let sk=skills.find(s=>s.studentId===stu.id&&s.type==="psychomotor"&&s.name===skill&&s.term===term);
+        if(sk){sk.rating=rating;}
+        else skills.push({studentId:stu.id,type:"psychomotor",name:skill,rating,term});
+      });
+      let formMasterRemark=document.getElementById("formMasterRemark").value;
+      let principalRemark=document.getElementById("principalRemark").value;
+      let formMasterName=document.getElementById("formMasterName").value;
+      let principalNameVal=document.getElementById("principalName").value;
+      let rem=remarks.find(r=>r.studentId===stu.id&&r.term===term);
+      if(rem){Object.assign(rem,{formMasterRemark,principalRemark,formMasterName,principalName:principalNameVal});}
+      else remarks.push({studentId:stu.id,term,formMasterRemark,principalRemark,formMasterName,principalName:principalNameVal});
+      saveData();renderClassTables();renderScoreEntryTables();closeModal();
+    }
+
+    function closeModal(){document.getElementById("scoreModal").style.display="none";}
+
+    /* ================= PDF ================= */
+    function generateResultPDF(id){
+      if(!isFullAccess()){
+        alert("⭐ PDF generation requires a full license.\nContact Phil Ed Tech to activate.");
+        return;
+      }
+      const term=document.getElementById("termSelect").value;
+      const stu=students.find(s=>s.id===id);
+      const subs=getSubjectsForClass(stu.className);
+      const {jsPDF}=window.jspdf;
+      const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+      let y=10;
+      const pageWidth=doc.internal.pageSize.getWidth();
+      const pageHeight=doc.internal.pageSize.getHeight();
+      
+      // Top bar background
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0,0,pageWidth,30,"F");
+      
+      // School Logo at Top (Left)
+      if(schoolLogo){
+        doc.addImage(schoolLogo,'PNG',10,5,20,20);
+      }
+      
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(16);
+      doc.text(schoolName.toUpperCase(),pageWidth/2,12,{align:"center"});
+      doc.setFontSize(10);
+      doc.text(schoolInfo,pageWidth/2,18,{align:"center"});
+      doc.text("STUDENT REPORT CARD",pageWidth/2,24,{align:"center"});
+      
+      y=35;
+      doc.setTextColor(0,0,0);
+      doc.setFontSize(9);
+      doc.text(`NAME: ${stu.name}`,15,y);
+      doc.text(`SEX: ${stu.sex}`,100,y);
+      doc.text(`CLASS: ${stu.className}`,150,y);
+      y+=5;
+      doc.text(`STUDENT ID: ${stu.id}`,15,y);
+      doc.text(`TERM: ${term}`,100,y);
+      doc.text(`SESSION: 2025/2026`,150,y);
+      y+=10;
+      
+      const startX=10;
+      const colWidths={sno:10,subject:45,score:15,grade:15,hic:15,lic:15};
+      doc.setFontSize(8);
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.2);
+      doc.setFillColor(200,200,200);
+      doc.rect(startX,y,pageWidth-20,15,"F");
+      let x=startX;
+      doc.rect(x,y,colWidths.sno,15);
+      doc.text("S/N",x+colWidths.sno/2,y+10,{align:"center"});
+      x+=colWidths.sno;
+      doc.rect(x,y,colWidths.subject,15);
+      doc.text("SUBJECT",x+colWidths.subject/2,y+10,{align:"center"});
+      x+=colWidths.subject;
+      const headers=["CA1","CA2","CA3","EXAM","TOTAL","GRADE"];
+      headers.forEach(h=>{
+        doc.rect(x,y,colWidths.score,15);
+        doc.text(h,x+colWidths.score/2,y+10,{align:"center"});
+        x+=colWidths.score;
+      });
+      doc.rect(x,y,colWidths.hic,15);
+      doc.saveGraphicsState();
+      doc.setFontSize(7);
+      doc.text("HIGHEST IN CLASS",x+colWidths.hic/2,y+13,{angle:90});
+      doc.restoreGraphicsState();
+      x+=colWidths.hic;
+      doc.rect(x,y,colWidths.lic,15);
+      doc.saveGraphicsState();
+      doc.setFontSize(7);
+      doc.text("LOWEST IN CLASS",x+colWidths.lic/2,y+13,{angle:90});
+      doc.restoreGraphicsState();
+      y+=15;
+      let rowNum=1;
+      subs.forEach(sub=>{
+        const sc=scores.find(s=>s.studentId===id&&s.subject===sub&&s.term===term)||{ca1:0,ca2:0,ca3:0,exam:0,total:0};
+        const hic=getHighestInClass(sub,stu.className,term);
+        const lic=getLowestInClass(sub,stu.className,term);
+        x=startX;
+        doc.rect(x,y,colWidths.sno,6);
+        doc.text(rowNum.toString(),x+colWidths.sno/2,y+4,{align:"center"});
+        x+=colWidths.sno;
+        doc.rect(x,y,colWidths.subject,6);
+        doc.text(sub,x+2,y+4);
+        x+=colWidths.subject;
+        [sc.ca1,sc.ca2,sc.ca3,sc.exam,sc.total,getGrade(sc.total),hic,lic].forEach(val=>{
+          doc.rect(x,y,colWidths.score,6);
+          doc.text(val.toString(),x+colWidths.score/2,y+4,{align:"center"});
+          x+=colWidths.score;
+        });
+        y+=6;
+        rowNum++;
+      });
+      y+=5;
+      const totalMarksObtainable=subs.length*100;
+      const studentTotal=scores.filter(sc=>sc.studentId===id&&sc.term===term).reduce((a,b)=>a+(parseFloat(b.total)||0),0);
+      const studentSubjectCount=scores.filter(sc=>sc.studentId===id&&sc.term===term).length;
+      const studentAvg=studentSubjectCount>0?(studentTotal/studentSubjectCount).toFixed(2):0;
+      const classStudents=students.filter(s=>s.className===stu.className).length;
+      const classScores=students.filter(s=>s.className===stu.className).map(s=>({id:s.id,total:scores.filter(sc=>sc.studentId===s.id&&sc.term===term).reduce((a,b)=>a+(parseFloat(b.total)||0),0)})).sort((a,b)=>b.total-a.total);
+      const position=classScores.findIndex(s=>s.id===id)+1;
+      const classAvg=classStudents>0?(classScores.reduce((a,b)=>a+b.total,0)/classStudents).toFixed(2):0;
+      doc.setFillColor(230,230,230);
+      doc.rect(15,y,pageWidth-30,15,"F");
+      doc.setFontSize(8);
+      doc.text(`Scores Obtainable: ${totalMarksObtainable}`,20,y+4);
+      doc.text(`Scores Obtained: ${studentTotal}`,80,y+4);
+      doc.text(`Average: ${studentAvg}`,140,y+4);
+      doc.text(`Position: ${position}/${classStudents}`,20,y+9);
+      doc.text(`Class Average: ${classAvg}`,80,y+9);
+      y+=18;
+      const skillStartX=10;
+      const skillWidth=(pageWidth-30)/2;
+      let skillY=y;
+      doc.setFillColor(200,200,200);
+      doc.rect(skillStartX,skillY,skillWidth,5,"F");
+      doc.text("AFFECTIVE SKILLS",skillStartX+skillWidth/2,skillY+3.5,{align:"center"});
+      skillY+=5;
+      affectiveSkills.forEach(s=>{
+        const sk=skills.find(sk=>sk.studentId===id&&sk.type==="affective"&&sk.name===s&&sk.term===term)||{rating:0};
+        doc.rect(skillStartX,skillY,skillWidth-10,5);
+        doc.text(s,skillStartX+2,skillY+3.5);
+        doc.rect(skillStartX+skillWidth-10,skillY,10,5);
+        doc.text(sk.rating.toString(),skillStartX+skillWidth-5,skillY+3.5,{align:"center"});
+        skillY+=5;
+      });
+      
+      let psychoY=y;
+      const psychoX=skillStartX+skillWidth+10;
+      doc.setFillColor(200,200,200);
+      doc.rect(psychoX,psychoY,skillWidth,5,"F");
+      doc.text("PSYCHOMOTOR SKILLS",psychoX+skillWidth/2,psychoY+3.5,{align:"center"});
+      psychoY+=5;
+      psychomotorSkills.forEach(s=>{
+        const sk=skills.find(sk=>sk.studentId===id&&sk.type==="psychomotor"&&sk.name===s&&sk.term===term)||{rating:0};
+        doc.rect(psychoX,psychoY,skillWidth-10,5);
+        doc.text(s,psychoX+2,psychoY+3.5);
+        doc.rect(psychoX+skillWidth-10,psychoY,10,5);
+        doc.text(sk.rating.toString(),psychoX+skillWidth-5,psychoY+3.5,{align:"center"});
+        psychoY+=5;
+      });
+      
+      y=Math.max(skillY,psychoY)+10;
+      
+      // Remarks & Signatures
+      const rem=remarks.find(r=>r.studentId===id&&r.term===term)||{formMasterRemark:"",principalRemark:"",formMasterName:"",principalName:""};
+      const finalFMName = rem.formMasterName || formMasters[stu.className] || '____________________';
+      const finalPrincipalName = rem.principalName || principalName || '____________________';
+
+      doc.text(`Form Master's Remark: ${rem.formMasterRemark}`,15,y);
+      y+=8;
+      doc.text(`Form Master's Name: ${finalFMName}`,15,y);
+      doc.text("Sign: ____________________",130,y);
+      y+=10;
+      doc.text(`Principal's Remark: ${rem.principalRemark}`,15,y);
+      y+=8;
+      doc.text(`Principal's Name: ${finalPrincipalName}`,15,y);
+      
+      // School Stamp at the Bottom (Near Principal's Name)
+      if(schoolStamp){
+        doc.addImage(schoolStamp,'PNG',130,y-10,25,25);
+      }
+      doc.text("Sign: ____________________",130,y);
+      
+      y+=10;
+      doc.text(`Next Term Resumes: ${resumptionDate}`,15,y);
+      doc.setFontSize(6);
+      doc.setTextColor(100,100,100);
+      doc.text("(A=70-100, B=60-69, C=50-59, D=45-49, E=40-45, F=0-39)",pageWidth/2,pageHeight-5,{align:"center"});
+      doc.save(`${stu.name}_${term}_Result.pdf`);
+    }
+
+    /* ================= EXCEL ================= */
+    function downloadSubjectExcel(){
+      const subject=document.getElementById("excelSubject").value;
+      const cls=document.getElementById("excelClass").value;
+      const term=document.getElementById("termSelect").value;
+      const data=[["Student ID","Student Name","CA1","CA2","CA3","Exam","Total","Grade"]];
+      students.filter(s=>s.className===cls).forEach(stu=>{
+        const sc=scores.find(s=>s.studentId===stu.id&&s.subject===subject&&s.term===term)||{};
+        data.push([stu.id,stu.name,sc.ca1||"",sc.ca2||"",sc.ca3||"",sc.exam||"",sc.total||"",getGrade(sc.total||0)]);
+      });
+      const ws=XLSX.utils.aoa_to_sheet(data);
+      const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,subject);
+      XLSX.writeFile(wb,`${cls}_${subject}_${term}.xlsx`);
+    }
+
+    function uploadSubjectExcel(){
+      const fileInput=document.getElementById("excelFile");
+      const file=fileInput ? fileInput.files[0] : null;
+      if(!file)return alert("Select file");
+      const subject=document.getElementById("excelSubject").value;
+      const cls=document.getElementById("excelClass").value;
+      const term=document.getElementById("termSelect").value;
+      const reader=new FileReader();
+      reader.onload=e=>{
+        const wb=XLSX.read(new Uint8Array(e.target.result),{type:"array"});
+        const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        rows.forEach(r=>{
+          const stu=students.find(s=>s.id==r["Student ID"]&&s.className===cls);
+          if(!stu)return;
+          const ca1=+r.CA1||0,ca2=+r.CA2||0,ca3=+r.CA3||0,exam=+r.Exam||0;
+          const total=ca1+ca2+ca3+exam;
+          let sc=scores.find(s=>s.studentId===stu.id&&s.subject===subject&&s.term===term);
+          if(sc)Object.assign(sc,{ca1,ca2,ca3,exam,total});
+          else scores.push({studentId:stu.id,subject,ca1,ca2,ca3,exam,total,term});
+        });
+        saveData();renderClassTables();alert("Upload successful");
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    /* ================= NEW: DOWNLOAD STUDENT DATA ================= */
+    function downloadClassStudentData(){
+      const cls=document.getElementById("downloadDataClass").value;
+      const clsStudents=students.filter(s=>s.className===cls);
+      if(clsStudents.length===0) return alert("No students found in this class.");
+      
+      const data=[["Student ID","Student Name","Sex","Class"]];
+      clsStudents.forEach(stu=>{
+        data.push([stu.id,stu.name,stu.sex,stu.className]);
+      });
+      
+      const ws=XLSX.utils.aoa_to_sheet(data);
+      const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,"Students");
+      XLSX.writeFile(wb,`${cls}_Student_List.xlsx`);
+    }
+  
+    let attendance = JSON.parse(localStorage.getItem("attendance")) || {};
+    let fees = JSON.parse(localStorage.getItem("fees")) || {};
+    let userRole = "Admin"; // Default
+    let myChart = null;
+
+    // Attendance Logic
+    function renderAttendanceTable() {
+        const cls = document.getElementById("attendanceClass").value;
+        const date = document.getElementById("attendanceDate").value || new Date().toISOString().split('T')[0];
+        document.getElementById("attendanceDate").value = date;
+        
+        const classStudents = students.filter(s => s.className === cls);
+        let html = `<table class="attendance-table"><thead><tr><th>Name</th><th>Status</th></tr></thead><tbody>`;
+        
+        classStudents.forEach(s => {
+            const status = (attendance[date] && attendance[date][s.id]) || "Present";
+            html += `<tr>
+                <td>${s.name}</td>
+                <td>
+                    <select onchange="updateAttendanceStatus('${date}', '${s.id}', this.value)">
+                        <option value="Present" ${status==='Present'?'selected':''}>Present</option>
+                        <option value="Absent" ${status==='Absent'?'selected':''}>Absent</option>
+                        <option value="Late" ${status==='Late'?'selected':''}>Late</option>
+                    </select>
+                </td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
+        document.getElementById("attendanceTableContainer").innerHTML = html;
+    }
+
+    function updateAttendanceStatus(date, studentId, status) {
+        if(!attendance[date]) attendance[date] = {};
+        attendance[date][studentId] = status;
+    }
+
+    function saveAttendance() {
+        localStorage.setItem("attendance", JSON.stringify(attendance));
+        alert("Attendance Saved Successfully!");
+    }
+
+    // Bursary Logic
+    function updateFeeStudentList() {
+        const cls = document.getElementById("feeClassSelect").value;
+        const feeStudent = document.getElementById("feeStudentSelect");
+        feeStudent.innerHTML = "";
+        students.filter(s => s.className === cls).forEach(s => {
+            feeStudent.add(new Option(`${s.name} (${s.id})`, s.id));
+        });
+        renderFeeTable();
+    }
+
+    function recordPayment() {
+        const id = document.getElementById("feeStudentSelect").value;
+        const amount = parseFloat(document.getElementById("feeAmount").value);
+        if(!id || isNaN(amount)) return alert("Invalid input");
+        
+        fees[id] = (fees[id] || 0) + amount;
+        localStorage.setItem("fees", JSON.stringify(fees));
+        renderFeeTable();
+        alert("Payment Recorded");
+    }
+
+    function renderFeeTable() {
+        const tbody = document.getElementById("feeTableBody");
+        if(!tbody) return;
+        // sync school fee input
+        if(document.getElementById("schoolFeeAmount") && !document.getElementById("schoolFeeAmount").value){
+          document.getElementById("schoolFeeAmount").value = schoolFeePerTerm || "";
+        }
+        tbody.innerHTML = "";
+        const selectedClass = document.getElementById("feeClassSelect") ? document.getElementById("feeClassSelect").value : "";
+        const displayStudents = selectedClass ? students.filter(s => s.className === selectedClass) : students;
+        displayStudents.forEach(s => {
+            const paid = fees[s.id] || 0;
+            const expected = schoolFeePerTerm || 0;
+            const outstanding = Math.max(0, expected - paid);
+            let statusBadge;
+            if(expected === 0){
+              statusBadge = paid > 0 ? '<span class="badge badge-paid">Paid</span>' : '<span class="badge badge-unpaid">Unpaid</span>';
+            } else if(outstanding === 0){
+              statusBadge = '<span class="badge badge-paid">✓ Fully Paid</span>';
+            } else if(paid > 0){
+              statusBadge = '<span class="badge badge-partial">⚠ Partial</span>';
+            } else {
+              statusBadge = '<span class="badge badge-unpaid">✗ Unpaid</span>';
+            }
+            tbody.innerHTML += `<tr>
+                <td>${s.id}</td>
+                <td>${s.name}</td>
+                <td>${s.className}</td>
+                <td>₦${expected.toLocaleString()}</td>
+                <td>₦${paid.toLocaleString()}</td>
+                <td style="color:${outstanding>0?'#dc2626':'#16a34a'};font-weight:bold;">₦${outstanding.toLocaleString()}</td>
+                <td>${statusBadge}</td>
+                <td><button onclick="deletePayment('${s.id}')" style="background:#dc2626;font-size:11px;padding:4px 8px;"><i class="fas fa-undo"></i> Reset</button></td>
+            </tr>`;
+        });
+    }
+
+    function deletePayment(id) {
+        if(confirm("Reset payment for this student?")) {
+            delete fees[id];
+            localStorage.setItem("fees", JSON.stringify(fees));
+            renderFeeTable();
+        }
+    }
+
+    // Analytics Logic
+    function updateDashboardStats() {
+        const total = students.length;
+        const male = students.filter(s => s.sex === 'M').length;
+        const female = students.filter(s => s.sex === 'F').length;
+        
+        if(document.getElementById("statTotalStudents")) document.getElementById("statTotalStudents").textContent = total;
+        if(document.getElementById("statMaleStudents")) document.getElementById("statMaleStudents").textContent = male;
+        if(document.getElementById("statFemaleStudents")) document.getElementById("statFemaleStudents").textContent = female;
+        
+        // Calculate Avg Score
+        if(scores.length > 0 && document.getElementById("statAvgScore")) {
+            const sum = scores.reduce((acc, curr) => acc + (parseFloat(curr.total) || 0), 0);
+            const avg = (sum / scores.length).toFixed(1);
+            document.getElementById("statAvgScore").textContent = avg + "%";
+        }
+
+        renderPerformanceChart();
+    }
+
+    function renderPerformanceChart() {
+        const canvas = document.getElementById('performanceChart');
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const classData = classes.map(c => {
+            const classStudents = students.filter(s => s.className === c).map(s => s.id);
+            const classScores = scores.filter(sc => classStudents.includes(sc.studentId));
+            if(classScores.length === 0) return 0;
+            return classScores.reduce((a, b) => a + (parseFloat(b.total) || 0), 0) / classScores.length;
+        });
+
+        if(myChart) myChart.destroy();
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: classes,
+                datasets: [{
+                    label: 'Average Score per Class (%)',
+                    data: classData,
+                    backgroundColor: '#2563eb',
+                    borderRadius: 5
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+        });
+    }
+
+    // Report Card Logic
+    function renderReportList() {
+        const cls = document.getElementById("reportClassSelect").value;
+        const classStudents = students.filter(s => s.className === cls);
+        let html = `<table><thead><tr><th>ID</th><th>Name</th><th>Action</th></tr></thead><tbody>`;
+        classStudents.forEach(s => {
+            html += `<tr>
+                <td>${s.id}</td>
+                <td>${s.name}</td>
+                <td><button onclick="generateReportCard('${s.id}')"><i class="fas fa-file-pdf"></i> Generate PDF</button></td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
+        document.getElementById("reportListContainer").innerHTML = html;
+    }
+
+    function generateReportCard(studentId) {
+        if(!isFullAccess()){
+          alert("⭐ PDF generation requires a full license.\nContact Phil Ed Tech to activate.");
+          return;
+        }
+        const id = studentId;
+        const term = document.getElementById("reportTermSelect").value;
+        const stu = students.find(s => s.id === id);
+        const subs = getSubjectsForClass(stu.className);
+        const {jsPDF} = window.jspdf;
+        const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+        let y = 10;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+
+        // Top bar background
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, pageWidth, 30, "F");
+
+        // School Logo at Top (Left)
+        if(schoolLogo){
+          doc.addImage(schoolLogo, 'PNG', 10, 5, 20, 20);
+        }
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(16);
+        doc.text(schoolName.toUpperCase(), pageWidth/2, 12, {align:"center"});
+        doc.setFontSize(10);
+        doc.text(schoolInfo, pageWidth/2, 18, {align:"center"});
+        doc.text("STUDENT REPORT CARD", pageWidth/2, 24, {align:"center"});
+
+        y = 35;
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
+        doc.text(`NAME: ${stu.name}`, 15, y);
+        doc.text(`SEX: ${stu.sex}`, 100, y);
+        doc.text(`CLASS: ${stu.className}`, 150, y);
+        y += 5;
+        doc.text(`STUDENT ID: ${stu.id}`, 15, y);
+        doc.text(`TERM: ${term}`, 100, y);
+        doc.text(`SESSION: 2025/2026`, 150, y);
+        y += 10;
+
+        const startX = 10;
+        const colWidths = {sno:10, subject:45, score:15, grade:15, hic:15, lic:15};
+        doc.setFontSize(8);
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.2);
+        doc.setFillColor(200, 200, 200);
+        doc.rect(startX, y, pageWidth-20, 15, "F");
+        let x = startX;
+        doc.rect(x, y, colWidths.sno, 15);
+        doc.text("S/N", x+colWidths.sno/2, y+10, {align:"center"});
+        x += colWidths.sno;
+        doc.rect(x, y, colWidths.subject, 15);
+        doc.text("SUBJECT", x+colWidths.subject/2, y+10, {align:"center"});
+        x += colWidths.subject;
+        const headers = ["CA1","CA2","CA3","EXAM","TOTAL","GRADE"];
+        headers.forEach(h => {
+          doc.rect(x, y, colWidths.score, 15);
+          doc.text(h, x+colWidths.score/2, y+10, {align:"center"});
+          x += colWidths.score;
+        });
+        doc.rect(x, y, colWidths.hic, 15);
+        doc.saveGraphicsState();
+        doc.setFontSize(7);
+        doc.text("HIGHEST IN CLASS", x+colWidths.hic/2, y+13, {angle:90});
+        doc.restoreGraphicsState();
+        x += colWidths.hic;
+        doc.rect(x, y, colWidths.lic, 15);
+        doc.saveGraphicsState();
+        doc.setFontSize(7);
+        doc.text("LOWEST IN CLASS", x+colWidths.lic/2, y+13, {angle:90});
+        doc.restoreGraphicsState();
+        y += 15;
+
+        let rowNum = 1;
+        subs.forEach(sub => {
+          const sc = scores.find(s => s.studentId===id && s.subject===sub && s.term===term) || {ca1:0,ca2:0,ca3:0,exam:0,total:0};
+          const hic = getHighestInClass(sub, stu.className, term);
+          const lic = getLowestInClass(sub, stu.className, term);
+          x = startX;
+          doc.setFontSize(8);
+          doc.rect(x, y, colWidths.sno, 6);
+          doc.text(rowNum.toString(), x+colWidths.sno/2, y+4, {align:"center"});
+          x += colWidths.sno;
+          doc.rect(x, y, colWidths.subject, 6);
+          doc.text(sub, x+2, y+4);
+          x += colWidths.subject;
+          [sc.ca1, sc.ca2, sc.ca3, sc.exam, sc.total, getGrade(sc.total), hic, lic].forEach(val => {
+            doc.rect(x, y, colWidths.score, 6);
+            doc.text(val.toString(), x+colWidths.score/2, y+4, {align:"center"});
+            x += colWidths.score;
+          });
+          y += 6;
+          rowNum++;
+        });
+
+        y += 5;
+        const totalMarksObtainable = subs.length * 100;
+        const studentTotal = scores.filter(sc => sc.studentId===id && sc.term===term).reduce((a,b) => a+(parseFloat(b.total)||0), 0);
+        const studentSubjectCount = scores.filter(sc => sc.studentId===id && sc.term===term).length;
+        const studentAvg = studentSubjectCount > 0 ? (studentTotal/studentSubjectCount).toFixed(2) : 0;
+        const classStudents = students.filter(s => s.className===stu.className).length;
+        const classScores = students.filter(s => s.className===stu.className)
+          .map(s => ({id:s.id, total:scores.filter(sc => sc.studentId===s.id && sc.term===term).reduce((a,b) => a+(parseFloat(b.total)||0), 0)}))
+          .sort((a,b) => b.total - a.total);
+        const position = classScores.findIndex(s => s.id===id) + 1;
+        const classAvg = classStudents > 0 ? (classScores.reduce((a,b) => a+b.total, 0)/classStudents).toFixed(2) : 0;
+
+        doc.setFillColor(230, 230, 230);
+        doc.rect(15, y, pageWidth-30, 15, "F");
+        doc.setFontSize(8);
+        doc.text(`Scores Obtainable: ${totalMarksObtainable}`, 20, y+4);
+        doc.text(`Scores Obtained: ${studentTotal}`, 80, y+4);
+        doc.text(`Average: ${studentAvg}`, 140, y+4);
+        doc.text(`Position: ${position}/${classStudents}`, 20, y+9);
+        doc.text(`Class Average: ${classAvg}`, 80, y+9);
+        y += 18;
+
+        const skillStartX = 10;
+        const skillWidth = (pageWidth-30)/2;
+        let skillY = y;
+        doc.setFillColor(200, 200, 200);
+        doc.rect(skillStartX, skillY, skillWidth, 5, "F");
+        doc.text("AFFECTIVE SKILLS", skillStartX+skillWidth/2, skillY+3.5, {align:"center"});
+        skillY += 5;
+        affectiveSkills.forEach(s => {
+          const sk = skills.find(sk => sk.studentId===id && sk.type==="affective" && sk.name===s && sk.term===term) || {rating:0};
+          doc.rect(skillStartX, skillY, skillWidth-10, 5);
+          doc.text(s, skillStartX+2, skillY+3.5);
+          doc.rect(skillStartX+skillWidth-10, skillY, 10, 5);
+          doc.text(sk.rating.toString(), skillStartX+skillWidth-5, skillY+3.5, {align:"center"});
+          skillY += 5;
+        });
+
+        let psychoY = y;
+        const psychoX = skillStartX + skillWidth + 10;
+        doc.setFillColor(200, 200, 200);
+        doc.rect(psychoX, psychoY, skillWidth, 5, "F");
+        doc.text("PSYCHOMOTOR SKILLS", psychoX+skillWidth/2, psychoY+3.5, {align:"center"});
+        psychoY += 5;
+        psychomotorSkills.forEach(s => {
+          const sk = skills.find(sk => sk.studentId===id && sk.type==="psychomotor" && sk.name===s && sk.term===term) || {rating:0};
+          doc.rect(psychoX, psychoY, skillWidth-10, 5);
+          doc.text(s, psychoX+2, psychoY+3.5);
+          doc.rect(psychoX+skillWidth-10, psychoY, 10, 5);
+          doc.text(sk.rating.toString(), psychoX+skillWidth-5, psychoY+3.5, {align:"center"});
+          psychoY += 5;
+        });
+
+        y = Math.max(skillY, psychoY) + 10;
+
+        // Remarks & Signatures
+        const rem = remarks.find(r => r.studentId===id && r.term===term) || {formMasterRemark:"", principalRemark:"", formMasterName:"", principalName:""};
+        const finalFMName = rem.formMasterName || formMasters[stu.className] || '____________________';
+        const finalPrincipalName = rem.principalName || principalName || '____________________';
+
+        doc.text(`Form Master's Remark: ${rem.formMasterRemark}`, 15, y);
+        y += 8;
+        doc.text(`Form Master's Name: ${finalFMName}`, 15, y);
+        doc.text("Sign: ____________________", 130, y);
+        y += 10;
+        doc.text(`Principal's Remark: ${rem.principalRemark}`, 15, y);
+        y += 8;
+        doc.text(`Principal's Name: ${finalPrincipalName}`, 15, y);
+
+        // School Stamp near Principal's Name
+        if(schoolStamp){
+          doc.addImage(schoolStamp, 'PNG', 130, y-10, 25, 25);
+        }
+        doc.text("Sign: ____________________", 130, y);
+
+        y += 10;
+        doc.text(`Next Term Resumes: ${resumptionDate}`, 15, y);
+        doc.setFontSize(6);
+        doc.setTextColor(100, 100, 100);
+        doc.text("(A=70-100, B=60-69, C=50-59, D=45-49, E=40-45, F=0-39)", pageWidth/2, pageHeight-5, {align:"center"});
+        doc.save(`${stu.name}_${term}_Result.pdf`);
+    }
+    
+  </script>
+  <!-- Licence Info Modal (shown when already activated) -->
+  <div id="licenseInfoModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#fff; border-radius:12px; padding:32px; max-width:420px; width:90%; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+      <div style="background:#0f172a; border-radius:8px; padding:16px; margin-bottom:20px;">
+        <div style="font-size:32px; margin-bottom:6px;">🔐</div>
+        <div style="color:#fff; font-size:18px; font-weight:bold;">Phil Ed Tech SMS</div>
+        <div style="color:#94a3b8; font-size:12px;">License Information</div>
+      </div>
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:12px; margin-bottom:16px;">
+        <div style="color:#16a34a; font-size:13px; font-weight:bold; margin-bottom:4px;">✅ FULLY ACTIVATED</div>
+        <div id="licInfoDays" style="font-size:13px; color:#16a34a;"></div>
+      </div>
+      <table style="width:100%; font-size:13px; border-collapse:collapse; margin-bottom:20px; text-align:left;">
+        <tr><td style="padding:8px; color:#64748b; border-bottom:1px solid #e2e8f0;">License Key</td><td id="licInfoKey" style="padding:8px; font-weight:bold; font-size:11px; word-break:break-all; border-bottom:1px solid #e2e8f0;"></td></tr>
+        <tr><td style="padding:8px; color:#64748b; border-bottom:1px solid #e2e8f0;">Plan</td><td id="licInfoPlan" style="padding:8px; font-weight:bold; border-bottom:1px solid #e2e8f0;"></td></tr>
+        <tr><td style="padding:8px; color:#64748b;">Expires</td><td id="licInfoExpiry" style="padding:8px; font-weight:bold;"></td></tr>
+      </table>
+      <button onclick="closeLicenseInfoModal()" style="width:100%; background:#0f172a; color:#fff; border:none; padding:12px; border-radius:8px; font-size:14px; cursor:pointer;">Close</button>
+    </div>
+  </div>
+
+</body>
+</html>
